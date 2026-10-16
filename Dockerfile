@@ -6,7 +6,7 @@ RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
 COPY web ./web
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /audio-server ./cmd/zvonok
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /audio-server ./cmd/audio-server
 
 FROM gcr.io/distroless/static-debian12:nonroot
 LABEL org.opencontainers.image.source="https://github.com/aes-gcm/audio.lgbt"

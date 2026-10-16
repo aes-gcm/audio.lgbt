@@ -10,8 +10,8 @@ import (
 	"github.com/pion/ice/v4"
 	"github.com/pion/webrtc/v4"
 
-	"zvonok/internal/sfu"
-	"zvonok/internal/turnx"
+	"github.com/aes-gcm/audio.lgbt/internal/sfu"
+	"github.com/aes-gcm/audio.lgbt/internal/turnx"
 )
 
 func (s *Server) runProd(ctx context.Context) error {
@@ -82,7 +82,7 @@ func (s *Server) runProd(ctx context.Context) error {
 			SFUIPs:   sfuIPs,
 			SFUPort:  s.cfg.UDPPort,
 			Secret:   turnSecret,
-			Realm:    firstNonEmpty(s.cfg.Domain, "zvonok"),
+			Realm:    firstNonEmpty(s.cfg.Domain, "audio.lgbt"),
 			Log:      s.log,
 		})
 		if err != nil {
@@ -108,7 +108,7 @@ func (s *Server) runProd(ctx context.Context) error {
 
 	demux := &Demuxer{TLSConfig: tlsConf, ICELn: iceLn, TURNLn: turnLn, HTTPLn: httpLn, AllowICETCP: s.cfg.ICETCP, Log: s.log.NewLogger("demux")}
 
-	log.Infof("zvonok on https://%s (UDP media :%d, TURN-TLS=%v)", addr, s.cfg.UDPPort, turnEnabled)
+	log.Infof("audio.lgbt on https://%s (UDP media :%d, TURN-TLS=%v)", addr, s.cfg.UDPPort, turnEnabled)
 
 	go func() {
 		<-ctx.Done()

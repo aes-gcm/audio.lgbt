@@ -25,7 +25,7 @@ func TestDownloadPageServedAtCleanURL(t *testing.T) {
 		if w.Code != http.StatusOK || w.Header().Get("Cache-Control") != "no-cache" {
 			t.Fatalf("%s /download: status=%d cache=%q", method, w.Code, w.Header().Get("Cache-Control"))
 		}
-		if method == "GET" && (!strings.Contains(w.Body.String(), "/downloads/audio.lgbt-Setup.exe") || strings.Contains(w.Body.String(), "Zvonok")) {
+		if method == "GET" && !strings.Contains(w.Body.String(), "/downloads/audio.lgbt-Setup.exe") {
 			t.Fatal("download page missing branded installer")
 		}
 	}

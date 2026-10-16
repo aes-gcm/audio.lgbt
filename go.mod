@@ -1,4 +1,4 @@
-module zvonok
+module github.com/aes-gcm/audio.lgbt
 
 go 1.26.0
 

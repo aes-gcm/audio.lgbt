@@ -13,10 +13,10 @@ import (
 	"github.com/pion/ice/v4"
 	"github.com/pion/logging"
 
-	"zvonok/internal/accounts"
-	"zvonok/internal/config"
-	"zvonok/internal/sfu"
-	"zvonok/web"
+	"github.com/aes-gcm/audio.lgbt/internal/accounts"
+	"github.com/aes-gcm/audio.lgbt/internal/config"
+	"github.com/aes-gcm/audio.lgbt/internal/sfu"
+	"github.com/aes-gcm/audio.lgbt/web"
 )
 
 func init() {
@@ -126,7 +126,7 @@ func (s *Server) runDev(ctx context.Context) error {
 		return err
 	}
 	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
-	s.log.NewLogger("server").Infof("zvonok dev on http://%s (UDP media :%d)", ln.Addr(), s.cfg.UDPPort)
+	s.log.NewLogger("server").Infof("audio.lgbt dev on http://%s (UDP media :%d)", ln.Addr(), s.cfg.UDPPort)
 	go func() { <-ctx.Done(); shutdown(srv) }()
 	if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
 		return err

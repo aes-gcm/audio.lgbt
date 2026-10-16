@@ -11,3 +11,5 @@ Windows monitor capture uses DXGI Desktop Duplication and never falls back to Wi
 Camera views display the complete transmitted frame with `object-fit: contain`, no CSS mirroring and labels outside the frame. Portrait layout changes tile dimensions instead of cropping the camera. The SFU does not negotiate CVO because its forwarder does not preserve that RTP extension; sources must apply camera rotation to pixels. Synthetic framing tests are not substitutes for physical phone/browser testing.
 
 The two Pion module replacements are intentional. See `third_party/PATCHES.md` before upgrading or removing them: Auto/TLS switching must verify actual selected relay/TLS candidates, not merely continued media.
+
+The version-one HKDF context is a fixed wire identifier, represented by byte escapes. Renaming a product must not change those bytes: existing invitation links and older clients derive the same room, media and chat keys. New browser preferences use the audio namespace and migrate the previous name key.

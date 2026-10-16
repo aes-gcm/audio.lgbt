@@ -1,10 +1,10 @@
 # Binaries
-/zvonok
-/zvonok-*
+/audio-server
+/audio-server-*
 *.exe
 
 # Let's Encrypt / ACME cache
-/zvonok-certs/
+/audio-certs/
 *.pem
 
 # Local editor / OS
@@ -40,3 +40,12 @@
 /desktop/installer/audio-lgbt.nsi
 /desktop/START-HERE.txt
 /scripts/build-windows.sh
+
+/desktop/
+/cmd/audio-client/
+/internal/nativeclient/
+/test/windows/
+/scripts/build-native*.ps1
+/scripts/build-capture.ps1
+/test/e2e/native-client.cjs
+/test/e2e/windows-ui-peer.cjs

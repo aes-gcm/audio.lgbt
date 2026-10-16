@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/aes-gcm/audio.lgbt/internal/accounts"
 	"io"
 	"os"
 	"sort"
 	"strings"
-	"zvonok/internal/accounts"
 )
 
 func manageAccounts(args []string) error {

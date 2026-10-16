@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"zvonok/internal/config"
-	"zvonok/internal/server"
+	"github.com/aes-gcm/audio.lgbt/internal/config"
+	"github.com/aes-gcm/audio.lgbt/internal/server"
 )
 
 func main() {
@@ -37,12 +37,12 @@ func main() {
 	}
 	cfg, err := config.Parse(os.Args[1:])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "zvonok:", err)
+		fmt.Fprintln(os.Stderr, "audio.lgbt:", err)
 		os.Exit(2)
 	}
 	srv, err := server.New(cfg)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "zvonok:", err)
+		fmt.Fprintln(os.Stderr, "audio.lgbt:", err)
 		os.Exit(1)
 	}
 
@@ -50,7 +50,7 @@ func main() {
 	defer stop()
 
 	if err := srv.Run(ctx); err != nil {
-		fmt.Fprintln(os.Stderr, "zvonok:", err)
+		fmt.Fprintln(os.Stderr, "audio.lgbt:", err)
 		os.Exit(1)
 	}
 }

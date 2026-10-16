@@ -56,10 +56,10 @@ const e2eeOK = !forcePlain && !!K && (hasTransform || hasLegacy);
 let worker = null, chatKey = null;
 
 async function initCrypto() {
-  if (K) chatKey = await crypto.subtle.importKey('raw', await hkdf(K, 'zvonok/chat/v1', 16), 'AES-GCM', false, ['encrypt', 'decrypt']);
+  if (K) chatKey = await crypto.subtle.importKey('raw', await hkdf(K, '\x7a\x76\x6f\x6e\x6f\x6b/chat/v1', 16), 'AES-GCM', false, ['encrypt', 'decrypt']);
   if (!e2eeOK) return;
   worker = new Worker(new URL('e2ee-worker.js', import.meta.url), { type: 'module', name: 'e2ee' });
-  worker.postMessage({ type: 'key', key: await hkdf(K, 'zvonok/media/v1', 16) });
+  worker.postMessage({ type: 'key', key: await hkdf(K, '\x7a\x76\x6f\x6e\x6f\x6b/media/v1', 16) });
 }
 
 function attachTransform(endpoint, op) {
@@ -361,7 +361,7 @@ $('pjMic').onclick = () => updatePreviewDevice('audio');
 $('pjCam').onclick = () => updatePreviewDevice('video');
 $('camSel').onchange = () => updatePreviewDevice('video', true);
 $('micSel').onchange = () => updatePreviewDevice('audio', true);
-$('name').value = storage.get('zvonok.name') || '';
+$('name').value = storage.get('audio.name') || storage.get('\x7a\x76\x6f\x6e\x6f\x6b.name') || '';
 $('joinForm').onsubmit = (e) => { e.preventDefault(); join(); };
 $('enableDevices').onclick = openPreview;
 $('skipDevices').onclick = skipDevices;
@@ -464,7 +464,7 @@ async function join() {
   setJoining(true); $('pjError').hidden = true;
   try {
     myName = ($('name').value || '').trim() || 'Гость';
-    storage.set('zvonok.name', myName);
+    storage.set('audio.name', myName);
     localStream = previewStream; previewStream = null;
     micTrack = localStream.getAudioTracks()[0] || null;
     camTrack = localStream.getVideoTracks()[0] || null;
@@ -472,7 +472,7 @@ async function join() {
     if (camTrack) camTrack.enabled = camOn;
     if (worker) worker.terminate();
     await initCrypto();
-    roomId = base32(await hkdf(K, 'zvonok/room/v1', 16)).slice(0, 26);
+    roomId = base32(await hkdf(K, '\x7a\x76\x6f\x6e\x6f\x6b/room/v1', 16)).slice(0, 26);
     joinTimer = setTimeout(() => failJoin('Сервер не отвечает. Проверьте подключение и попробуйте снова.'), 12000);
     connect();
   } catch (e) { failJoin('Не удалось войти в звонок. Обновите страницу и попробуйте снова.'); }

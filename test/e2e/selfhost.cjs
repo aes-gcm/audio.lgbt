@@ -36,14 +36,6 @@ assert.equal(account.status,0,account.stderr.toString());
   await a.click('#leave');await b.click('#leave');
   assert.deepEqual(errors,[]);
   console.log('PASS restricted creation, login/error/logout, guest invite without account, direct WS denial, origin checks, mobile dialog');
-  if(process.env.TEST_NATIVE==='1') {
-   const run=(exe,args,env)=>new Promise((resolve,reject)=>{
-    const p=spawn(exe,args,{windowsHide:true,env:{...process.env,...env},stdio:'inherit'});
-    p.on('error',reject);p.on('close',code=>code===0?resolve():reject(Error('Native test failed: '+code)));
-   });
-   await run(process.env.DOTNET_EXE||'dotnet',['test/windows/bin/Release/net10.0-windows10.0.19041.0/AudioLgbt.Native.Tests.dll','server-checks'],{BASE_URL:base+'/'});
-   for(const creates of ['1','0'])await run(process.execPath,['test/e2e/native-client.cjs'],{BASE_URL:base,AUTH_USER:'admin',AUTH_PASSWORD:password,NATIVE_CREATES:creates});
-   await run(process.env.DOTNET_EXE||'dotnet',['test/windows/bin/Release/net10.0-windows10.0.19041.0/AudioLgbt.Native.Tests.dll','server-ui-checks'],{BASE_URL:base+'/'});
-  }
+
  }finally{await browser?.close();server.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1});

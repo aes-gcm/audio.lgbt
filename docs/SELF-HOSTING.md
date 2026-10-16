@@ -91,8 +91,12 @@ docker compose logs --tail=100
 ## Разработка без Docker
 
 ```sh
-go build -o audio-server ./cmd/zvonok
+go build -o audio-server ./cmd/audio-server
 ./audio-server -dev -http 127.0.0.1:8080 -udp 3478
 ```
 
 Откройте `http://localhost:8080`. Режим разработки не включает TLS/TURN и не предназначен для публикации наружу. Для production бинарник принимает `-domain`, `-public-ip`, `-cert-dir`, `-accounts`, `-require-auth`; `-help` показывает остальные параметры. Собственный сертификат задаётся парой `-tls-cert` / `-tls-key`.
+
+## Отдельный Windows-клиент
+
+Серверный репозиторий и Docker-образ не содержат исходники или установщик Windows. Готовый клиент скачивается с https://audio.lgbt/download; его исходники находятся в https://github.com/aes-gcm/audio.lgbt-windows. Выберите свой HTTPS URL кнопкой «Сервер» в приложении.

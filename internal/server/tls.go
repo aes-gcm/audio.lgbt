@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/crypto/acme/autocert"
 
-	"zvonok/internal/config"
+	"github.com/aes-gcm/audio.lgbt/internal/config"
 )
 
 func buildTLSConfig(cfg *config.Config) (*tls.Config, error) {
