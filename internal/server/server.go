@@ -128,7 +128,7 @@ func downloadHandler(directory string) http.Handler {
 				return
 			}
 		}
-		version := "0.3.0-preview.8"
+		version := "0.3.0-preview.9"
 		if match != nil {
 			version = match[1]
 		}
