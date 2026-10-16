@@ -1,0 +1,42 @@
+# Binaries
+/zvonok
+/zvonok-*
+*.exe
+
+# Let's Encrypt / ACME cache
+/zvonok-certs/
+*.pem
+
+# Local editor / OS
+.DS_Store
+*.swp
+
+# Local verification and desktop builds
+/output/
+/.playwright-cli/
+/dist/
+**/bin/
+**/obj/
+/node_modules/
+
+/.tools/
+/.cache/
+/.impeccable/
+/handoff/
+/screenshots/
+/data/
+/.env
+*.key
+*.pfx
+*.p12
+*.zip
+*.lib
+*.exp
+*.dll
+*.obj
+/START-HERE-WINDOWS.txt
+/DESIGN.md
+/desktop/AudioLgbt.Windows/
+/desktop/installer/audio-lgbt.nsi
+/desktop/START-HERE.txt
+/scripts/build-windows.sh

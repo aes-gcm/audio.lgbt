@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup>
+  <OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+  <UseWindowsForms>true</UseWindowsForms><EnableWindowsTargeting>true</EnableWindowsTargeting>
+  <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  <AssemblyName>audio.lgbt</AssemblyName><RootNamespace>AudioLgbt</RootNamespace>
+  <Product>audio.lgbt</Product><Company>audio.lgbt</Company><Version>0.3.0-preview.7</Version>
+  <OfficialUpdates Condition="'$(OfficialUpdates)' == ''">true</OfficialUpdates>
+  <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch><RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  <ApplicationManifest>../Common/app.manifest</ApplicationManifest><ApplicationIcon>Assets/audio.lgbt.ico</ApplicationIcon>
+  <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile><DebugType>none</DebugType>
+ </PropertyGroup>
+ <ItemGroup>
+  <FrameworkReference Update="Microsoft.NETCore.App" RuntimeFrameworkVersion="10.0.13" />
+  <FrameworkReference Update="Microsoft.WindowsDesktop.App.WindowsForms" RuntimeFrameworkVersion="10.0.13" />
+  <PackageReference Include="NAudio" Version="2.2.1" />
+  <PackageReference Include="Concentus" Version="2.2.2" />
+  <PackageReference Include="FFmpeg.AutoGen" Version="8.1.0" />
+  <EmbeddedResource Include="Fonts/*.ttf" /><EmbeddedResource Include="Assets/audio.lgbt.ico" LogicalName="AudioLgbt.app.ico" /><Content Include="Fonts/OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+  <Compile Include="../Common/LaunchOptions.cs" Link="LaunchOptions.cs" />
+  <AssemblyMetadata Include="OfficialUpdates" Value="$(OfficialUpdates)" />
+  <Content Include="update-install.ps1" CopyToOutputDirectory="PreserveNewest" />
+ </ItemGroup>
+</Project>

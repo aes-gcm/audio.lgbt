@@ -1,0 +1,36 @@
+services:
+  audio:
+    image: ghcr.io/aes-gcm/audio.lgbt:latest
+    build: .
+    restart: unless-stopped
+    network_mode: host
+    user: "0:0"
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    environment:
+      AUDIO_REQUIRE_AUTH: ${AUDIO_REQUIRE_AUTH:-false}
+      AUDIO_ACCOUNTS_FILE: /data/accounts.json
+    command:
+      - -domain
+      - ${AUDIO_DOMAIN:?Set AUDIO_DOMAIN in .env}
+      - -public-ip
+      - ${AUDIO_PUBLIC_IP:?Set AUDIO_PUBLIC_IP in .env}
+      - -cert-dir
+      - /data/certs
+    volumes:
+      - ./data:/data
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    healthcheck:
+      test: [CMD, /audio-server, healthcheck, "https://${AUDIO_DOMAIN}/healthz"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 90s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

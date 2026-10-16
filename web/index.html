@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>audio.lgbt — звонки по ссылке</title>
+<meta name="description" content="Аудио- и видеозвонки по одной ссылке. Без регистрации и ограничений по времени.">
+<meta name="theme-color" content="#101010">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23101010%27/%3E%3Cpath d=%27M8 14v4m5-9v14m6-17v20m5-14v8%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>
+
+(function(){
+  var d = document.documentElement;
+  try { d.dataset.theme = localStorage.getItem('audio.theme') === 'light' ? 'light' : 'dark'; } catch(e){}
+  try {
+    var h = location.hash.replace(/^#/,'').replace(/-/g,'+').replace(/_/g,'/');
+    if (h && atob(h).length === 16) d.classList.add('room');
+  } catch(e){}
+})();
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#joinForm">К подготовке звонка</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-audio" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 10v4M9 5v14M15 2v20M21 8v8"/></g>
+    <g id="i-arrow" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16m-6-6 6 6-6 6"/></g>
+    <g id="i-sun" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></g>
+    <g id="i-moon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M20.5 13.2A8.5 8.5 0 0 1 10.8 3.5 8.5 8.5 0 1 0 20.5 13.2Z"/></g>
+    <g id="i-sliders" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></g>
+    <g id="i-clock" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g>
+    <g id="i-mic" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4M8 22h8"/></g>
+    <g id="i-mic-off" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9v2a3 3 0 0 0 5.1 2.1"/><path d="M15 9.3V5a3 3 0 0 0-5.9-.7"/><path d="M19 10v1a7 7 0 0 1-11.3 5.5M5 11v-1"/><path d="M12 18v4M8 22h8"/><path d="M3 3l18 18"/></g>
+    <g id="i-cam" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-6 4.5 6 4.5V7z"/><rect x="1" y="5.5" width="15" height="13" rx="2.5"/></g>
+    <g id="i-cam-off" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16.5V17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h1m5 0h4a2 2 0 0 1 2 2v3l5-3.5v9"/><path d="M3 3l18 18"/></g>
+    <g id="i-expand" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></g>
+    <g id="i-screen" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/><path d="M12 7.5v5M9.5 10l2.5-2.5L14.5 10"/></g>
+    <g id="i-chat" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14.5a2 2 0 0 1-2 2H8l-4.5 4V5.5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></g>
+    <g id="i-phone" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.1 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.8 2z"/></g>
+    <g id="i-users" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></g>
+    <g id="i-link" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></g>
+    <g id="i-lock" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></g>
+    <g id="i-shield" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></g>
+    <g id="i-edit" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m14 5 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14z"/></g>
+    <g id="i-x" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></g>
+    <g id="i-send" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></g>
+    <g id="i-chevron" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></g>
+    <g id="i-check" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></g>
+    <g id="i-pin" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 5 3 3v2H7v-2l3-3-1-5z"/><path d="M12 14v6"/></g>
+    <g id="i-vol" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8 8 0 0 1 0 12"/></g>
+  </defs>
+</svg>
+
+<dialog id="accountDialog" class="call-dialog account-dialog" aria-labelledby="accountTitle">
+  <div class="call-dialog-heading"><h2 id="accountTitle">Вход на сервер</h2><button id="accountClose" class="round" type="button" aria-label="Закрыть">×</button></div>
+  <p>Вход нужен только для создания комнат. По приглашению можно подключиться без аккаунта.</p>
+  <form id="accountForm" class="account-form">
+    <label for="accountName">Логин</label><input id="accountName" name="username" autocomplete="username" maxlength="64" required>
+    <label for="accountPassword">Пароль</label><input id="accountPassword" name="password" type="password" autocomplete="current-password" maxlength="72" required>
+    <p id="accountError" class="error" role="alert" hidden></p>
+    <button id="accountSubmit" class="primary" type="submit">Войти</button>
+  </form>
+</dialog>
+<section id="prejoin" class="prejoin">
+  <header class="site-header page-width">
+    <a class="wordmark" href="./" aria-label="audio.lgbt — главная"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic brand-symbol"><use href="#i-audio"/></svg>audio<span>.lgbt</span></a>
+    <div class="header-actions">
+      <button id="serverAccount" class="text-button" type="button" hidden>Войти</button>
+      <a id="appsBtn" class="text-button" href="/download">Скачать приложение</a>
+      <span class="header-divider"></span>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Включить светлую тему"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sun"><use href="#i-sun"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ic moon"><use href="#i-moon"/></svg></button>
+    </div>
+  </header>
+  <main id="entryMain" class="hero page-width">
+    <div id="landingIntro" class="hero-copy">
+      <h1>Звонок по ссылке</h1>
+      <div class="signal" aria-hidden="true"><i style="--h:5px;--n:0"></i><i style="--h:9px;--n:1"></i><i style="--h:15px;--n:2"></i><i style="--h:8px;--n:3"></i><i style="--h:23px;--n:4"></i><i style="--h:34px;--n:5"></i><i style="--h:18px;--n:6"></i><i style="--h:42px;--n:7"></i><i style="--h:61px;--n:8"></i><i style="--h:37px;--n:9"></i><i style="--h:75px;--n:10"></i><i style="--h:94px;--n:11"></i><i style="--h:57px;--n:12"></i><i style="--h:109px;--n:13"></i><i style="--h:79px;--n:14"></i><i style="--h:49px;--n:15"></i><i style="--h:97px;--n:16"></i><i style="--h:123px;--n:17"></i><i style="--h:88px;--n:18"></i><i style="--h:62px;--n:19"></i><i style="--h:102px;--n:20"></i><i style="--h:78px;--n:21"></i><i style="--h:46px;--n:22"></i><i style="--h:65px;--n:23"></i><i style="--h:90px;--n:24"></i><i style="--h:53px;--n:25"></i><i style="--h:32px;--n:26"></i><i style="--h:60px;--n:27"></i><i style="--h:39px;--n:28"></i><i style="--h:23px;--n:29"></i><i style="--h:35px;--n:30"></i><i style="--h:17px;--n:31"></i><i style="--h:25px;--n:32"></i><i style="--h:12px;--n:33"></i><i style="--h:7px;--n:34"></i><i style="--h:4px;--n:35"></i></div>
+    </div>
+    <div id="landingActions" class="landing-actions">
+      <button id="createRoom" class="primary" type="button">Создать звонок<svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-arrow"/></svg></button>
+      <section id="inviteEntry" class="invite-entry" aria-label="Вход по приглашению">
+        <form id="inviteForm">
+          <label for="inviteUrl">Войти по ссылке</label>
+          <div><input id="inviteUrl" type="url" placeholder="Вставьте ссылку на звонок" aria-describedby="inviteError" required><button class="invite-submit" type="submit">Войти <svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-arrow"/></svg></button></div>
+          <p id="inviteError" class="error" role="alert" hidden></p>
+        </form>
+      </section>
+      <section id="recentRooms" class="recent-rooms" aria-labelledby="recentRoomsTitle" hidden>
+        <div class="recent-heading"><h2 id="recentRoomsTitle">Недавние комнаты</h2><span>В этом браузере</span></div>
+        <div id="recentRoomsList" class="recent-list"></div>
+      </section>
+    </div>
+    <a class="source-link" href="https://github.com/aes-gcm/audio.lgbt" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <div id="preparation" class="join-area">
+      <div class="join-heading"><h2 id="joinTitle" tabindex="-1">Перед звонком</h2><button id="prepInvite" type="button" class="text-button" aria-label="Скопировать приглашение">Пригласить <svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-link"/></svg></button></div>
+      <p class="join-description" id="joinDescription">Проверьте имя, камеру и звук. Вас ещё не видно и не слышно.</p>
+      <form id="joinForm" class="join-form">
+        <div class="preview" data-state="initial">
+          <video id="preview" autoplay playsinline muted></video>
+          <div id="previewOff" class="preview-off">
+            <div class="preview-orbit" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-audio"/></svg></div>
+            <span id="previewLabel" role="status" aria-live="polite">Камера и микрофон</span>
+            <p id="deviceHelp" class="device-help">Разрешите доступ, чтобы проверить себя перед звонком.</p>
+            <button id="enableDevices" type="button" class="enable-devices" aria-describedby="deviceHelp">Разрешить доступ <svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-arrow"/></svg></button>
+            <div id="permissionOptions" class="permission-options"><button id="audioOnly" type="button">Только микрофон</button><button id="skipDevices" type="button">Без устройств</button></div>
+          </div>
+          <span class="preview-caption">ПРЕДПРОСМОТР</span>
+          <div id="deviceStatus" class="device-status" hidden><span id="deviceStatusText" role="status" aria-live="polite"></span><button id="cancelDevice" type="button" hidden>Отмена</button></div>
+          <div id="previewControls" class="preview-bottom" hidden><span id="previewName">Вы</span><div class="preview-toggles">
+            <button id="pjMic" class="round on" type="button" aria-pressed="true" aria-label="Микрофон"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic on-ic"><use href="#i-mic"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ic off-ic"><use href="#i-mic-off"/></svg></button>
+            <button id="pjCam" class="round on" type="button" aria-pressed="true" aria-label="Камера"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic on-ic"><use href="#i-cam"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ic off-ic"><use href="#i-cam-off"/></svg></button>
+          </div></div>
+          <div id="meter" class="meter" aria-hidden="true"><i></i></div>
+        </div>
+        <div class="field"><label for="name">Ваше имя <span>Так вас увидят другие</span></label><input id="name" class="name" type="text" maxlength="64" placeholder="Как к вам обращаться?" autocomplete="name"></div>
+        <details id="deviceSettings" class="devices" hidden><summary><span><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-sliders"/></svg>Камера и микрофон</span><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-chevron"/></svg></summary>
+          <div class="device-field"><label id="camSelLabel" for="camSelButton">Камера</label><select id="camSel" hidden><option value="">По умолчанию</option></select>
+            <div class="device-picker"><button id="camSelButton" type="button" class="device-trigger" role="combobox" aria-labelledby="camSelLabel" aria-haspopup="listbox" aria-expanded="false" aria-controls="camSelList"><span>По умолчанию</span><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-chevron"/></svg></button><div id="camSelList" class="device-options" role="listbox" aria-labelledby="camSelLabel" hidden></div></div>
+          </div>
+          <div class="device-field"><label id="micSelLabel" for="micSelButton">Микрофон</label><select id="micSel" hidden><option value="">По умолчанию</option></select>
+            <div class="device-picker"><button id="micSelButton" type="button" class="device-trigger" role="combobox" aria-labelledby="micSelLabel" aria-haspopup="listbox" aria-expanded="false" aria-controls="micSelList"><span>По умолчанию</span><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-chevron"/></svg></button><div id="micSelList" class="device-options" role="listbox" aria-labelledby="micSelLabel" hidden></div></div>
+          </div>
+        </details>
+        <details id="connSettings" class="devices"><summary><span><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-link"/></svg>Соединение</span><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-chevron"/></svg></summary>
+          <div class="conn-field"><label for="connMode">Способ связи</label>
+            <select id="connMode"><option value="auto">Авто — лучшее качество</option><option value="relay">Только TLS — обход блокировок</option></select>
+            <p class="conn-hint">«Авто» выбирает прямой UDP, а если его режут — сам переходит на TLS. «Только TLS» использует ретранслятор на порту 443. Попробуйте этот режим, если звонок не соединяется.</p>
+          </div>
+        </details>
+        <button id="join" class="primary" type="submit" disabled aria-describedby="deviceHelp"><span id="joinLabel">Войти в звонок</span><svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-arrow"/></svg></button>
+        <p id="pjError" class="error" role="alert" hidden></p>
+        <p id="e2eeBadge" class="e2ee" hidden><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-lock"/></svg>Сквозное шифрование доступно</p>
+      </form>
+
+    </div>
+  </main>
+</section>
+
+<section id="call" class="screen call" hidden>
+  <header class="topbar">
+    <div class="left">
+      <span class="logo sm"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-audio"/></svg></span>
+      <span id="roomBadge" class="brandmark">audio.lgbt</span>
+      <span id="e2eeChip" class="chip tone-live" title="Содержимое звонка видно только участникам"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-lock"/></svg> Шифрование</span>
+      <span id="connChip" class="chip" hidden title="Способ связи с сервером"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-link"/></svg> …</span>
+      <span id="lockState" class="chip" hidden title="Комната закрыта"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-lock"/></svg> Закрыта</span>
+    </div>
+    <div class="right">
+      <button id="settingsBtn" class="chip settings-button" type="button" aria-label="Настройки" title="Настройки" aria-controls="callDialog" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sliders"/></svg></button>
+      <span id="timer" class="timer">00:00</span>
+      <button id="peopleBtn" class="chip" aria-controls="callDialog" aria-expanded="false" type="button" title="Участники"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-users"/></svg> <span id="count">1</span></button>
+      <button id="copyInvite" class="chip accent" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-link"/></svg> Пригласить</button>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" role="status" hidden></div>
+  <div id="waitingHint" class="waiting-hint" hidden><span>Вы пока одни. Пригласите собеседника.</span><button id="waitingInvite" type="button">Пригласить <svg class="ic sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-link"/></svg></button></div>
+
+  <div class="body">
+    <main id="stage" class="stage" aria-label="Участники звонка"></main>
+
+    <aside id="panel" class="panel" hidden>
+      <div class="panel-tabs">
+        <button id="tabChat" class="tab" type="button">Чат <span id="chatBadge" class="badge" hidden>0</span></button>
+        <button id="panelClose" class="tab close" type="button" aria-label="Закрыть"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-x"/></svg></button>
+      </div>
+
+      <div id="peopleView" class="panel-view">
+        <div id="hostTools" class="host-tools" hidden>
+          <button id="muteAll" class="small" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-mic-off"/></svg> Выключить всем микрофоны</button>
+          <button id="lockRoom" class="small" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-lock"/></svg> <span class="t">Закрыть комнату</span></button>
+          <button id="endAll" class="small danger" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sm"><use href="#i-phone"/></svg> Завершить для всех</button>
+        </div>
+        <ul id="peopleList" class="people"></ul>
+      </div>
+
+      <div id="chatView" class="panel-view" hidden>
+        <ul id="chatLog" class="chat-log" role="log" aria-label="Сообщения" aria-live="polite" aria-relevant="additions"></ul>
+        <p id="chatError" class="error" role="alert" hidden></p>
+        <form id="chatForm" class="chat-form">
+          <input aria-label="Сообщение в чат" id="chatInput" type="text" maxlength="2000" placeholder="Сообщение…" autocomplete="off">
+          <button id="chatSend" type="submit" class="round accent" aria-label="Отправить"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-send"/></svg></button>
+        </form>
+      </div>
+      <div id="settingsView" class="panel-view room-settings" hidden>
+        <div class="settings-column"><div class="settings-field"><label for="callMic">Микрофон</label><select id="callMic"><option value="">По умолчанию</option></select></div>
+        <div class="settings-field settings-range"><label for="micLevel">Громкость микрофона <output id="micLevelValue" for="micLevel">100%</output></label><input id="micLevel" type="range" min="0" max="200" value="100" step="5"></div>
+        <label class="settings-check"><span>Шумоподавление</span><input id="noiseFilter" type="checkbox" checked></label>
+        <p id="noiseHelp" class="settings-help" hidden></p>
+        <div class="settings-field"><label for="callCam">Камера</label><select id="callCam"><option value="">По умолчанию</option></select></div>
+        </div><div class="settings-column"><div id="outputField" class="settings-field"><label for="callOutput">Динамики или наушники</label><select id="callOutput"><option value="">По умолчанию</option></select></div>
+        <button id="testOutput" class="small output-test" type="button" aria-pressed="false">Проверить звук</button>
+        <div class="settings-field settings-range"><label for="speakerLevel">Громкость звонка <output id="speakerLevelValue" for="speakerLevel">100%</output></label><input id="speakerLevel" type="range" min="0" max="100" value="100" step="5"></div>
+        <p id="outputHelp" class="settings-help" hidden>Устройство вывода звука можно изменить в настройках системы.</p>
+
+        <div class="settings-field settings-connection"><label for="callTransport">Соединение</label><select id="callTransport"><option value="auto">Авто</option><option value="relay">Через TLS</option></select><p class="settings-help">При смене звук и видео могут ненадолго прерваться.</p></div>
+        <div class="settings-field settings-appearance"><label for="callTheme">Тема</label><select id="callTheme"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></div></div>
+        <div class="settings-feedback"><p id="settingsError" class="error" role="alert" hidden></p><p id="settingsStatus" class="settings-help" role="status" aria-live="polite"></p></div>
+      </div>
+    </aside>
+  </div>
+
+  <nav class="controls" aria-label="Управление звонком">
+    <button aria-label="Микрофон" id="mic" class="ctrl on" type="button" aria-pressed="true"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic on-ic"><use href="#i-mic"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ic off-ic"><use href="#i-mic-off"/></svg></span><span class="l">Микрофон</span></button>
+    <button aria-label="Камера" id="cam" class="ctrl on" type="button" aria-pressed="true"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic on-ic"><use href="#i-cam"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ic off-ic"><use href="#i-cam-off"/></svg></span><span class="l">Камера</span></button>
+    <button aria-label="Демонстрация экрана" id="share" class="ctrl" type="button" hidden><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-screen"/></svg></span><span class="l">Экран</span></button>
+    <button aria-label="Открыть чат" id="chatToggle" class="ctrl" type="button"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-chat"/></svg></span><span class="l">Чат</span></button>
+    <span class="sep"></span>
+    <button id="leave" class="ctrl leave" type="button" aria-label="Выйти из звонка"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic"><use href="#i-phone"/></svg></span><span class="l">Выйти</span></button>
+  </nav>
+
+</section>
+
+<section id="ended" class="ended page-width" hidden aria-labelledby="endedTitle">
+  <a class="wordmark" href="./">audio<span>.lgbt</span></a>
+  <main class="ended-content">
+    <svg class="ended-symbol" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>
+    <h1 id="endedTitle" tabindex="-1">Вы вышли из звонка</h1>
+    <p>Камера и микрофон выключены.</p>
+    <p id="endedDuration" class="ended-duration"></p>
+    <div class="ended-actions"><button id="returnCall" class="primary" type="button">Вернуться в звонок</button><a href="./" class="secondary-link">На главную</a></div>
+  </main>
+</section>
+<dialog id="callDialog" class="call-dialog" aria-labelledby="callDialogTitle">
+  <header class="call-dialog-heading"><h2 id="callDialogTitle">Настройки</h2><button id="callDialogClose" class="round" type="button" aria-label="Закрыть"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button></header>
+  <div id="callDialogBody" class="call-dialog-body">
+    <div id="endView" class="invite-view" hidden><p>Все участники будут отключены от звонка.</p><button id="confirmEnd" class="primary" type="button">Завершить для всех</button><button id="cancelEnd" class="small" type="button">Отмена</button></div>
+    <div id="inviteView" class="invite-view" hidden><label for="roomInvite">Ссылка на комнату</label><input id="roomInvite" class="name" type="text" readonly><button id="copyRoomInvite" class="primary" type="button">Скопировать ссылку</button><p id="inviteStatus" class="settings-help" role="status" aria-live="polite"></p></div>
+  </div>
+</dialog>
+<dialog id="shareDialog" class="share-dialog" aria-labelledby="shareTitle">
+  <form id="shareForm">
+    <div class="share-heading"><h2 id="shareTitle">Демонстрация экрана</h2><button id="shareClose" class="round" type="button" aria-label="Закрыть"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="share-options">
+      <div class="settings-field"><label for="shareQuality">Качество</label><select id="shareQuality"><option value="720">720p</option><option value="1080" selected>1080p · Full HD</option><option value="1440">1440p · QHD</option><option value="2160">2160p · 4K</option></select></div>
+      <div class="settings-field"><label for="shareFps">Частота кадров</label><select id="shareFps"><option value="15">15 FPS</option><option value="30" selected>30 FPS</option><option value="60">60 FPS</option></select></div>
+    </div>
+    <div class="settings-field"><label for="shareContent">Что показываете</label><select id="shareContent"><option value="detail">Текст и приложения</option><option value="motion">Видео и игры</option></select></div>
+    <label class="settings-check"><span>Передавать звук</span><input id="shareAudio" type="checkbox" checked></label>
+    <p class="settings-help">Выберите вкладку, окно или экран в следующем окне. Для звука включите там «Поделиться аудио», если этот вариант доступен.</p>
+    <p class="settings-help">Качество зависит от размера источника, скорости связи и мощности устройства.</p>
+    <p id="shareError" class="error" role="alert" hidden></p>
+    <div class="share-footer"><button id="shareStop" class="share-stop" type="button" hidden>Остановить показ</button><button id="shareSource" class="share-secondary" type="button" hidden>Другой источник</button><button id="shareStart" class="primary" type="submit">Выбрать источник</button></div>
+  </form>
+</dialog>
+<p id="notice" class="notice" role="status" aria-live="polite"></p>
+<script type="module" src="app.js"></script>
+</body>
+</html>

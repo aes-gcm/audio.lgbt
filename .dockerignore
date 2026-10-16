@@ -1,0 +1,16 @@
+.git
+.tools
+node_modules
+dist
+output
+screenshots
+handoff
+desktop
+test
+data
+.env
+web/downloads/*.exe
+**/bin
+**/obj
+**/*.pem
+**/*.key

@@ -1,0 +1,203 @@
+package server
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"mime"
+	"net"
+	"net/http"
+	"time"
+
+	"github.com/pion/ice/v4"
+	"github.com/pion/logging"
+
+	"zvonok/internal/accounts"
+	"zvonok/internal/config"
+	"zvonok/internal/sfu"
+	"zvonok/web"
+)
+
+func init() {
+
+	_ = mime.AddExtensionType(".woff2", "font/woff2")
+}
+
+type Server struct {
+	accounts *accounts.Store
+	cfg      *config.Config
+	log      logging.LoggerFactory
+	udpMux   ice.UDPMux
+	hub      *sfu.Hub
+}
+
+func New(cfg *config.Config) (*Server, error) {
+	users, err := accounts.New(cfg.AccountsFile, cfg.RequireAuth, !cfg.Dev)
+	if err != nil {
+		return nil, err
+	}
+	lf := logging.NewDefaultLoggerFactory()
+
+	loopback := cfg.Dev || containsLoopback(cfg.PublicIPs)
+	opts := []ice.UDPMuxFromPortOption{ice.UDPMuxFromPortWithLogger(lf.NewLogger("udpmux"))}
+	if loopback {
+		opts = append(opts, ice.UDPMuxFromPortWithLoopback())
+	}
+	udpMux, err := ice.NewMultiUDPMuxFromPort(cfg.UDPPort, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("listen UDP :%d: %w", cfg.UDPPort, err)
+	}
+	return &Server{cfg: cfg, log: lf, udpMux: udpMux, accounts: users}, nil
+}
+
+func (s *Server) buildHub(net sfu.ServerNet, iceServers func(string) []sfu.ICEServer) error {
+	loopback := s.cfg.Dev || containsLoopback(s.cfg.PublicIPs)
+	engine, err := sfu.NewEngine(sfu.EngineConfig{
+		Net:       net,
+		PublicIPs: s.cfg.PublicIPs,
+		Lite:      !s.cfg.Dev,
+		Loopback:  loopback,
+		Log:       s.log,
+	})
+	if err != nil {
+		return err
+	}
+	s.hub = sfu.NewHub(sfu.HubConfig{
+		RequireAuth: s.cfg.RequireAuth,
+		CanCreate:   s.accounts.CanCreate,
+		Engine:      engine,
+		Log:         s.log,
+		MaxRoom:     s.cfg.MaxRoom,
+		MaxRooms:    s.cfg.MaxRooms,
+		RoomSecret:  s.cfg.RoomSecret,
+		ICEServers:  iceServers,
+	})
+	return nil
+}
+
+func (s *Server) Handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/server", s.accounts.Status)
+	mux.HandleFunc("/api/login", s.accounts.Login)
+	mux.HandleFunc("/api/logout", s.accounts.Logout)
+	mux.HandleFunc("/ws", s.hub.ServeWS)
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte("ok")) })
+	mux.HandleFunc("/downloads/audio.lgbt-Setup.exe", func(w http.ResponseWriter, r *http.Request) {
+		file, err := web.FS.Open("downloads/audio.lgbt-Setup.exe")
+		if err != nil {
+			http.Redirect(w, r, "https://audio.lgbt/downloads/audio.lgbt-Setup.exe", http.StatusTemporaryRedirect)
+			return
+		}
+		file.Close()
+		w.Header().Set("Cache-Control", "no-cache")
+		http.ServeFileFS(w, r, web.FS, "downloads/audio.lgbt-Setup.exe")
+	})
+	mux.HandleFunc("/download", serveDownload)
+	mux.HandleFunc("/download/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/download/" {
+			http.NotFound(w, r)
+			return
+		}
+		http.Redirect(w, r, "/download", http.StatusPermanentRedirect)
+	})
+	mux.Handle("/", noCacheHTML(http.FileServerFS(web.FS)))
+	return mux
+}
+
+func serveDownload(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-cache")
+	http.ServeFileFS(w, r, web.FS, "download.html")
+}
+
+func (s *Server) Run(ctx context.Context) error {
+	if s.cfg.Dev {
+		return s.runDev(ctx)
+	}
+	return s.runProd(ctx)
+}
+
+func (s *Server) runDev(ctx context.Context) error {
+	if err := s.buildHub(sfu.ServerNet{UDPMux: s.udpMux}, nil); err != nil {
+		return err
+	}
+	ln, err := net.Listen("tcp", s.cfg.HTTPAddr)
+	if err != nil {
+		return err
+	}
+	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
+	s.log.NewLogger("server").Infof("zvonok dev on http://%s (UDP media :%d)", ln.Addr(), s.cfg.UDPPort)
+	go func() { <-ctx.Done(); shutdown(srv) }()
+	if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
+}
+
+func noCacheHTML(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/server-auth.js" {
+			w.Header().Set("Cache-Control", "no-cache")
+		}
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" || r.URL.Path == "/download.html" || r.URL.Path == "/download.js" || r.URL.Path == "/app.js" || r.URL.Path == "/recent-rooms.js" || r.URL.Path == "/style.css" || r.URL.Path == "/e2ee-worker.js" || r.URL.Path == "/downloads/windows-x64.json" || r.URL.Path == "/downloads/audio.lgbt-Setup.exe" || r.URL.Path == "/downloads/audio.lgbt-Setup.exe.sha256" {
+			w.Header().Set("Cache-Control", "no-cache")
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func shutdown(srv *http.Server) {
+	sctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	_ = srv.Shutdown(sctx)
+}
+
+func containsLoopback(ips []string) bool {
+	for _, s := range ips {
+		if ip := net.ParseIP(s); ip != nil && ip.IsLoopback() {
+			return true
+		}
+	}
+	return false
+}
+
+func hostOf(addr string) string {
+	h, _, err := net.SplitHostPort(addr)
+	if err != nil || h == "" || h == "0.0.0.0" || h == "::" {
+		return ""
+	}
+	return h
+}
+
+func portOf(addr string) string {
+	_, p, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "443"
+	}
+	return p
+}
+
+func firstNonEmpty(vs ...string) string {
+	for _, v := range vs {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func randomSecret() string {
+	var b [32]byte
+	_, _ = rand.Read(b[:])
+	return hex.EncodeToString(b[:])
+}
+
+func parseIPs(ss []string) []net.IP {
+	out := make([]net.IP, 0, len(ss))
+	for _, s := range ss {
+		if ip := net.ParseIP(s); ip != nil {
+			out = append(out, ip)
+		}
+	}
+	return out
+}

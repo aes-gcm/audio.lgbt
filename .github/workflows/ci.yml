@@ -1,0 +1,62 @@
+name: Build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test -race ./...
+      - run: docker build -t audio-test .
+      - name: Test container lifecycle and account persistence
+        run: |
+          mkdir -p test-data
+          printf '%s' 'ci-only-password-123' | docker run --rm -i -u 0:0 -v "$PWD/test-data:/data" audio-test account -file /data/accounts.json -password-stdin admin
+          docker run -d --name audio-check --network host -u 0:0 -v "$PWD/test-data:/data" audio-test -dev -http 127.0.0.1:8082 -udp 3482 -require-auth -accounts /data/accounts.json
+          trap 'docker logs audio-check; docker rm -f audio-check' EXIT
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8082/healthz && break || sleep 1; done
+          curl -fsS http://127.0.0.1:8082/api/server | grep '"authenticationRequired":true'
+          curl -fsS -c /tmp/audio-cookie -H 'Content-Type: application/json' -d '{"username":"admin","password":"ci-only-password-123"}' http://127.0.0.1:8082/api/login
+          curl -fsS -b /tmp/audio-cookie http://127.0.0.1:8082/api/server | grep '"username":"admin"'
+          docker restart audio-check
+          sleep 2
+          curl -fsS -b /tmp/audio-cookie http://127.0.0.1:8082/api/server | grep '"username":""'
+      - uses: docker/login-action@v3
+        if: github.event_name == 'push' && github.repository == 'aes-gcm/audio.lgbt'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        if: github.event_name == 'push' && github.repository == 'aes-gcm/audio.lgbt'
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/aes-gcm/audio.lgbt:latest,ghcr.io/aes-gcm/audio.lgbt:${{ github.sha }}
+    permissions:
+      contents: read
+      packages: write
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - shell: pwsh
+        run: ./scripts/build-native.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-x64
+          path: dist/native-x64

@@ -1,0 +1,15 @@
+Development handoff dependencies, downloaded 2026-10-15.
+
+FFmpeg 8.1 LGPL shared, upstream build publisher BtbN/FFmpeg-Builds:
+https://github.com/BtbN/FFmpeg-Builds
+https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-lgpl-shared-8.1.zip
+https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-winarm64-lgpl-shared-8.1.zip
+
+The /latest URLs are mutable. The handoff contains the exact downloaded archives:
+ffmpeg-x64.zip SHA256 66bfa3595d633afadf22be4ff5385cbdae8998006e61755e01333491e595b178
+ffmpeg-arm64.zip SHA256 207ee5796859b6a3ce033393a32ce6b2fe878b6d5753bb8cce979d9c6925e852
+
+Keep included license and documentation. Before public redistribution, provide required notices and corresponding-source/relinking provisions for the chosen build and its dependencies. These archives are development dependencies, not a new audio.lgbt release.
+
+NuGet package versions and transitives: desktop/AudioLgbt.Native/packages.lock.json.
+Go dependency versions: go.mod and go.sum.
