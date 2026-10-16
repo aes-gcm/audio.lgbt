@@ -17,8 +17,8 @@ async function request(path, body) {
 }
 export async function refreshAccount() {
   current = await request('/api/server');
-  button.hidden = !current.authenticationRequired;
-  button.textContent = current.username ? `Выйти (${current.username})` : 'Войти';
+  button.hidden = !current.username;
+  button.textContent = current.username ? `Выйти (${current.username})` : '';
   return current;
 }
 function openLogin() {
@@ -49,13 +49,12 @@ button.onclick = async () => {
   try {
     const status = await refreshAccount();
     if (status.username) { await request('/api/logout', {}); await refreshAccount(); }
-    else await openLogin();
   } catch (error) {
-    openLogin(); message.textContent = error.message; message.hidden = false;
+    button.textContent = 'Повторить выход';
   } finally { button.disabled = false; }
 };
 export async function authorizeCreation() {
   const status = await refreshAccount();
   return !status.authenticationRequired || !!status.username || await openLogin();
 }
-refreshAccount().catch(() => { button.hidden = false; button.textContent = 'Войти'; });
+refreshAccount().catch(() => { button.hidden = true; });

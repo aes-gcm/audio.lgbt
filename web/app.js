@@ -401,7 +401,6 @@ async function maybeAutoPreview() {
 $('createRoom').onclick = async () => {
   $('createRoom').disabled = true;
   try {
-    if (!await authorizeCreation()) return;
     history.pushState(null, '', '#' + b64urlEnc(K));
     showPreparation(true);
   } catch (error) { $('inviteError').textContent = error.message; $('inviteError').hidden = false; }
@@ -457,11 +456,13 @@ function send(m) {
   ws.send(JSON.stringify(m)); return true;
 }
 
-async function join() {
+let authenticationRetried = false;
+async function join(afterLogin = false) {
   if (joining || previewBusy) return;
   if (!e2eeOK && !forcePlain) { showPjError('Этот браузер не поддерживает шифрование звонка. Откройте ссылку в актуальном Chrome, Edge или Firefox.'); return; }
   if (!previewStream) { await openPreview(); return; }
   setJoining(true); $('pjError').hidden = true;
+  authenticationRetried = afterLogin;
   try {
     myName = ($('name').value || '').trim() || 'Гость';
     storage.set('audio.name', myName);
@@ -532,7 +533,13 @@ async function onSignal(m) {
     case 'removed': left = true; endCall('Вас удалили из звонка'); break;
     case 'ended': left = true; endCall('Организатор завершил звонок'); break;
     case 'error':
-      m.error = ({ 'room is full': 'В комнате больше нет свободных мест.', 'room is locked': 'Организатор закрыл вход. Попросите его открыть комнату.', 'server is at capacity': 'Сервер занят. Попробуйте немного позже.', 'unknown room': 'Комната уже закрыта. Попробуйте войти ещё раз.', 'a valid token is required to create a room': 'Организатор ещё не открыл комнату. Если вы организатор, войдите в аккаунт и подключитесь снова.' })[m.error] || m.error;
+      if (m.error === 'a valid token is required to create a room' && !joined && !authenticationRetried) {
+        failJoin(''); $('pjError').hidden = true;
+        try { if (await authorizeCreation()) await join(true); }
+        catch (error) { showPjError(error.message); }
+        return;
+      }
+      m.error = ({ 'room is full': 'В комнате больше нет свободных мест.', 'room is locked': 'Организатор закрыл вход. Попросите его открыть комнату.', 'server is at capacity': 'Сервер занят. Попробуйте немного позже.', 'unknown room': 'Комната уже закрыта. Попробуйте войти ещё раз.', 'a valid token is required to create a room': 'Не удалось открыть комнату. Попробуйте подключиться ещё раз.' })[m.error] || m.error;
 
       if (joined) { left = true; endCall(m.error || 'Соединение отклонено'); }
       else failJoin(m.error || 'Не удалось войти в комнату. Попробуйте позже.');

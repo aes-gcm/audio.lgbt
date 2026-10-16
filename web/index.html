@@ -58,8 +58,8 @@
 </svg>
 
 <dialog id="accountDialog" class="call-dialog account-dialog" aria-labelledby="accountTitle">
-  <div class="call-dialog-heading"><h2 id="accountTitle">Вход на сервер</h2><button id="accountClose" class="round" type="button" aria-label="Закрыть">×</button></div>
-  <p>Вход нужен только для создания комнат. По приглашению можно подключиться без аккаунта.</p>
+  <div class="call-dialog-heading"><h2 id="accountTitle">Открыть комнату</h2><button id="accountClose" class="round" type="button" aria-label="Закрыть">×</button></div>
+  <p>Вы входите первым. Войдите в аккаунт, чтобы открыть комнату.</p>
   <form id="accountForm" class="account-form">
     <label for="accountName">Логин</label><input id="accountName" name="username" autocomplete="username" maxlength="64" required>
     <label for="accountPassword">Пароль</label><input id="accountPassword" name="password" type="password" autocomplete="current-password" maxlength="72" required>
@@ -71,7 +71,7 @@
   <header class="site-header page-width">
     <a class="wordmark" href="./" aria-label="audio.lgbt — главная"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic brand-symbol"><use href="#i-audio"/></svg>audio<span>.lgbt</span></a>
     <div class="header-actions">
-      <button id="serverAccount" class="text-button" type="button" hidden>Войти</button>
+      <button id="serverAccount" class="text-button" type="button" hidden></button>
       <a id="appsBtn" class="text-button" href="/download">Скачать приложение</a>
       <span class="header-divider"></span>
       <button id="themeToggle" class="theme-toggle" type="button" aria-label="Включить светлую тему"><svg viewBox="0 0 24 24" aria-hidden="true" class="ic sun"><use href="#i-sun"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ic moon"><use href="#i-moon"/></svg></button>
