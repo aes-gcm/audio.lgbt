@@ -64,11 +64,12 @@ type subscription struct {
 }
 
 type Participant struct {
-	id   string
-	name string
-	room *Room
-	hub  *Hub
-	log  logging.LeveledLogger
+	id          string
+	name        string
+	canOpenRoom bool
+	room        *Room
+	hub         *Hub
+	log         logging.LeveledLogger
 
 	pub *webrtc.PeerConnection
 	sub *webrtc.PeerConnection
@@ -102,13 +103,14 @@ type Participant struct {
 func newParticipant(h *Hub, r *Room, id, name string) *Participant {
 	return &Participant{
 		id: id, name: name, room: r, hub: h,
-		log:       h.log,
-		sig:       make(chan struct{}, 1),
-		done:      make(chan struct{}),
-		labels:    map[string]string{},
-		published: map[string]*PubTrack{},
-		subs:      map[string]*subscription{},
-		mutes:     map[string]bool{},
+		canOpenRoom: !h.requireAuth && h.roomSecret == "",
+		log:         h.log,
+		sig:         make(chan struct{}, 1),
+		done:        make(chan struct{}),
+		labels:      map[string]string{},
+		published:   map[string]*PubTrack{},
+		subs:        map[string]*subscription{},
+		mutes:       map[string]bool{},
 	}
 }
 

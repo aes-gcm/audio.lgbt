@@ -103,7 +103,7 @@ func (s *Server) runProd(ctx context.Context) error {
 		log.Warnf("TURN-over-TLS fallback disabled: set -public-ip to enable it")
 	}
 
-	httpSrv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
+	httpSrv := &http.Server{Handler: restoreTLSState(s.Handler()), ConnContext: tlsConnContext, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 	go func() { _ = httpSrv.Serve(httpLn) }()
 
 	demux := &Demuxer{TLSConfig: tlsConf, ICELn: iceLn, TURNLn: turnLn, HTTPLn: httpLn, AllowICETCP: s.cfg.ICETCP, Log: s.log.NewLogger("demux"), Meter: s.meter}

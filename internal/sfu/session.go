@@ -56,6 +56,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 		name = "Гость"
 	}
 	p := newParticipant(h, room, newID(), name)
+	p.canOpenRoom = h.mayCreate(join.Token, authorized)
 	p.closeWS = cancel
 
 	sendCh := make(chan Msg, sendBuffer)

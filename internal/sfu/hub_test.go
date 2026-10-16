@@ -17,7 +17,9 @@ func TestRestrictedCreationAllowsInvitedGuests(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = room.add(newParticipant(h, room, "admin", "Admin")); err != nil {
+	admin := newParticipant(h, room, "admin", "Admin")
+	admin.canOpenRoom = true
+	if _, err = room.add(admin); err != nil {
 		t.Fatal(err)
 	}
 	guest, err := h.joinRoom("private", "")

@@ -11,17 +11,7 @@
 <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
-<script>
-
-(function(){
-  var d = document.documentElement;
-  try { d.dataset.theme = localStorage.getItem('audio.theme') === 'light' ? 'light' : 'dark'; } catch(e){}
-  try {
-    var h = location.hash.replace(/^#/,'').replace(/-/g,'+').replace(/_/g,'/');
-    if (h && atob(h).length === 16) d.classList.add('room');
-  } catch(e){}
-})();
-</script>
+<script src="/bootstrap.js"></script>
 </head>
 <body>
 

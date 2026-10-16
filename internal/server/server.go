@@ -103,7 +103,7 @@ func (s *Server) Handler() http.Handler {
 		http.Redirect(w, r, "/download", http.StatusPermanentRedirect)
 	})
 	mux.Handle("/", noCacheHTML(http.FileServerFS(web.FS)))
-	return s.meter.HTTP(s.guard.HTTP(mux))
+	return securityHeaders(s.meter.HTTP(s.guard.HTTP(mux)), !s.cfg.Dev)
 }
 
 var installerVersion = regexp.MustCompile(`^audio\.lgbt-(\d+\.\d+\.\d+(?:-preview\.\d+)?)-x64\.exe$`)
@@ -168,7 +168,7 @@ func (s *Server) runDev(ctx context.Context) error {
 
 func noCacheHTML(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/server-auth.js" {
+		if r.URL.Path == "/server-auth.js" || r.URL.Path == "/bootstrap.js" {
 			w.Header().Set("Cache-Control", "no-cache")
 		}
 		if r.URL.Path == "/" || r.URL.Path == "/index.html" || r.URL.Path == "/download.html" || r.URL.Path == "/download.js" || r.URL.Path == "/app.js" || r.URL.Path == "/recent-rooms.js" || r.URL.Path == "/style.css" || r.URL.Path == "/e2ee-worker.js" || r.URL.Path == "/downloads/windows-x64.json" || r.URL.Path == "/downloads/audio.lgbt-Setup.exe" || r.URL.Path == "/downloads/audio.lgbt-Setup.exe.sha256" {

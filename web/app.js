@@ -16,7 +16,6 @@ const storage = {
   get(key) { try { return localStorage.getItem(key); } catch { return null; } },
   set(key, value) { try { localStorage.setItem(key, value); } catch {} },
 };
-const forcePlain = params.get('plain') === '1';
 let forceRelay = params.get('relay') === '1';
 try { if (localStorage.getItem('audio.transport') === 'relay') forceRelay = true; } catch (e) {}
 const debug = params.get('debug') === '1';
@@ -52,7 +51,7 @@ async function hkdf(keyBytes, info, len) {
 
 const hasTransform = 'RTCRtpScriptTransform' in window;
 const hasLegacy = window.RTCRtpSender && 'createEncodedStreams' in RTCRtpSender.prototype;
-const e2eeOK = !forcePlain && !!K && (hasTransform || hasLegacy);
+const e2eeOK = !!K && (hasTransform || hasLegacy);
 let worker = null, chatKey = null;
 
 async function initCrypto() {
@@ -459,7 +458,7 @@ function send(m) {
 let authenticationRetried = false;
 async function join(afterLogin = false) {
   if (joining || previewBusy) return;
-  if (!e2eeOK && !forcePlain) { showPjError('Этот браузер не поддерживает шифрование звонка. Откройте ссылку в актуальном Chrome, Edge или Firefox.'); return; }
+  if (!e2eeOK) { showPjError('Этот браузер не поддерживает шифрование звонка. Откройте ссылку в актуальном Chrome, Edge или Firefox.'); return; }
   if (!previewStream) { await openPreview(); return; }
   setJoining(true); $('pjError').hidden = true;
   authenticationRetried = afterLogin;
@@ -1429,10 +1428,9 @@ $('returnCall').onclick = () => location.reload();
 window.addEventListener('beforeunload', () => { try { ws && ws.close(); } catch {} });
 
 (async function boot() {
-  if (forcePlain) { $('e2eeBadge').textContent = 'Сквозное шифрование отключено в этой ссылке'; $('e2eeBadge').hidden = false; }
-  else if (e2eeOK) {
+  if (e2eeOK) {
     $('e2eeBadge').hidden = false;
-  } else if (!forcePlain) {
+  } else {
     const b = $('e2eeBadge');
     b.textContent = 'Этот браузер не поддерживает шифрование. Для входа нужен актуальный Chrome, Edge или Firefox.';
     b.style.color = 'var(--dim)';

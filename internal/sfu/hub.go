@@ -3,11 +3,14 @@ package sfu
 import (
 	"errors"
 	"net/http"
+	"regexp"
 	"sync"
 
 	"github.com/aes-gcm/audio.lgbt/internal/observe"
 	"github.com/pion/logging"
 )
+
+var roomIDPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,128}$`)
 
 var (
 	errRoomFull     = errors.New("room is full")
@@ -84,7 +87,7 @@ func (h *Hub) joinRoom(id, token string) (*Room, error) {
 	return h.joinAuthorized(id, token, false)
 }
 func (h *Hub) joinAuthorized(id, token string, authorized bool) (*Room, error) {
-	if id == "" {
+	if !roomIDPattern.MatchString(id) {
 		return nil, errNoSuchKey
 	}
 	h.mu.Lock()
@@ -103,7 +106,11 @@ func (h *Hub) joinAuthorized(id, token string, authorized bool) (*Room, error) {
 	r.mu.RLock()
 	locked := r.locked
 	full := len(r.parts) >= h.maxRoom
+	empty := len(r.parts) == 0
 	r.mu.RUnlock()
+	if empty && !h.mayCreate(token, authorized) {
+		return nil, errBadToken
+	}
 	if locked {
 		return nil, errRoomLocked
 	}
@@ -111,6 +118,13 @@ func (h *Hub) joinAuthorized(id, token string, authorized bool) (*Room, error) {
 		return nil, errRoomFull
 	}
 	return r, nil
+}
+
+func (h *Hub) mayCreate(token string, authorized bool) bool {
+	if h.requireAuth {
+		return authorized
+	}
+	return h.roomSecret == "" || token == h.roomSecret
 }
 
 func (r *Room) add(p *Participant) ([]*Participant, error) {
@@ -124,6 +138,9 @@ func (r *Room) add(p *Participant) ([]*Participant, error) {
 	defer r.mu.Unlock()
 	if r.locked {
 		return nil, errRoomLocked
+	}
+	if len(r.parts) == 0 && !p.canOpenRoom {
+		return nil, errBadToken
 	}
 	if len(r.parts) >= r.hub.maxRoom {
 		return nil, errRoomFull

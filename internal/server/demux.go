@@ -2,9 +2,11 @@ package server
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
 	"encoding/binary"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -53,7 +55,26 @@ func (l *chanListener) push(c net.Conn) bool {
 
 type peekedConn struct {
 	net.Conn
-	r *bufio.Reader
+	r        *bufio.Reader
+	tlsState *tls.ConnectionState
+}
+
+type tlsContextKey struct{}
+
+func tlsConnContext(ctx context.Context, conn net.Conn) context.Context {
+	if c, ok := conn.(*peekedConn); ok && c.tlsState != nil {
+		return context.WithValue(ctx, tlsContextKey{}, c.tlsState)
+	}
+	return ctx
+}
+
+func restoreTLSState(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if state, ok := r.Context().Value(tlsContextKey{}).(*tls.ConnectionState); ok {
+			r.TLS = state
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (c *peekedConn) Read(b []byte) (int, error) { return c.r.Read(b) }
@@ -128,7 +149,8 @@ func (d *Demuxer) handleTLS(raw net.Conn) {
 	inner := bufio.NewReaderSize(tc, 2048)
 	first, err := inner.Peek(8)
 	_ = raw.SetDeadline(time.Time{})
-	wrapped := &peekedConn{Conn: tc, r: inner}
+	state := tc.ConnectionState()
+	wrapped := &peekedConn{Conn: tc, r: inner, tlsState: &state}
 	if err == nil && first[0]&0xC0 == 0 && binary.BigEndian.Uint32(first[4:8]) == stunMagicCookie {
 		d.deliver(d.TURNLn, wrapped, "turn_tls_routed")
 		return

@@ -71,16 +71,13 @@ func (p *Participant) onPublishOffer(m Msg) {
 	if p.pub == nil {
 		return
 	}
-	if len(m.Tracks) > 16 {
+	labels, err := validatePublish(m)
+	if err != nil {
+		p.hub.meter.Add("invalid_publish_rejected", 1)
+		p.Close()
 		return
 	}
-
-	p.labels = make(map[string]string, len(m.Tracks))
-	for _, t := range m.Tracks {
-		if validSource(t.Source) && t.Mid != "" {
-			p.labels[t.Mid] = t.Source
-		}
-	}
+	p.labels = labels
 	if err := p.pub.SetRemoteDescription(webrtc.SessionDescription{Type: webrtc.SDPTypeOffer, SDP: m.SDP}); err != nil {
 		p.log.Warnf("pub SetRemoteDescription: %v", err)
 		return
@@ -120,8 +117,23 @@ func (p *Participant) onPublished(track *webrtc.TrackRemote, recv *webrtc.RTPRec
 		}
 	}
 	source := p.labels[mid]
-	if source == "" {
-		source = track.Kind().String() + "-" + mid
+	if !validSource(source) {
+		p.Close()
+		return
+	}
+	for _, published := range p.published {
+		if published.source == source {
+			if published.receiver == recv {
+				p.Close()
+				return
+			}
+			p.onUnpublished(published)
+			_ = published.receiver.Stop()
+		}
+	}
+	if len(p.published) >= 4 {
+		p.Close()
+		return
 	}
 
 	key := p.id + ":" + source + "#" + mid
@@ -311,6 +323,9 @@ func (p *Participant) onSubscribeAnswer(m Msg) {
 	if p.sub == nil {
 		return
 	}
+	if !p.negotiating {
+		return
+	}
 	if err := p.sub.SetRemoteDescription(webrtc.SessionDescription{Type: webrtc.SDPTypeAnswer, SDP: m.SDP}); err != nil {
 		p.log.Warnf("sub SetRemoteDescription: %v", err)
 
@@ -388,6 +403,7 @@ func (p *Participant) onModeration(m Msg) {
 			target.Close()
 		}
 	case "end":
+		p.room.setLocked(true)
 		for _, o := range p.room.allParticipants() {
 			o.send(Msg{Type: "ended"})
 			o.Close()
