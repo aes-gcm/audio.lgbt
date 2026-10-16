@@ -9,7 +9,7 @@
 - Необязательные локальные аккаунты: создавать комнаты могут авторизованные пользователи, гости входят по ссылке без регистрации.
 - Windows-клиент без WebView: WinForms/.NET, Go/Pion, нативный захват экрана и WASAPI.
 
-[Открыть audio.lgbt](https://audio.lgbt) · [Скачать приложение](https://audio.lgbt/download) · [Развернуть свой сервер](docs/SELF-HOSTING.md)
+[Открыть audio.lgbt](https://audio.lgbt) · [Скачать приложение](https://github.com/aes-gcm/audio.lgbt-windows/releases) · [Развернуть свой сервер](docs/SELF-HOSTING.md)
 
 ## Самостоятельное размещение
 

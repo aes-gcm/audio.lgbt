@@ -99,5 +99,5 @@ go build -o audio-server ./cmd/audio-server
 
 ## Отдельный Windows-клиент
 
-Серверный репозиторий и Docker-образ не содержат исходники или установщик Windows. Готовый клиент скачивается с https://audio.lgbt/download; его исходники находятся в https://github.com/aes-gcm/audio.lgbt-windows. Выберите свой HTTPS URL кнопкой «Сервер» в приложении.
+Серверный репозиторий и Docker-образ не содержат исходники или установщик Windows. Готовый клиент скачивается с https://github.com/aes-gcm/audio.lgbt-windows/releases; его исходники находятся в https://github.com/aes-gcm/audio.lgbt-windows. Выберите свой HTTPS URL кнопкой «Сервер» в приложении.
 
