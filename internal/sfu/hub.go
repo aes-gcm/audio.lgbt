@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/aes-gcm/audio.lgbt/internal/observe"
 	"github.com/pion/logging"
 )
 
@@ -17,6 +18,7 @@ var (
 )
 
 type Hub struct {
+	meter       *observe.Meter
 	requireAuth bool
 	canCreate   func(*http.Request) bool
 	engine      *Engine
@@ -32,6 +34,7 @@ type Hub struct {
 }
 
 type HubConfig struct {
+	Meter       *observe.Meter
 	RequireAuth bool
 	CanCreate   func(*http.Request) bool
 	Engine      *Engine
@@ -54,6 +57,7 @@ func NewHub(cfg HubConfig) *Hub {
 		cfg.MaxRooms = 2000
 	}
 	return &Hub{
+		meter:       cfg.Meter,
 		requireAuth: cfg.RequireAuth, canCreate: cfg.CanCreate,
 		engine:     cfg.Engine,
 		log:        lf.NewLogger("hub"),

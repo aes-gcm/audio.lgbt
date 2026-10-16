@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aes-gcm/audio.lgbt/internal/observe"
 	"github.com/pion/logging"
 )
 
@@ -38,12 +39,16 @@ func (l *chanListener) Accept() (net.Conn, error) {
 }
 func (l *chanListener) Close() error   { l.closer.Do(func() { close(l.done) }); return nil }
 func (l *chanListener) Addr() net.Addr { return l.addr }
-func (l *chanListener) push(c net.Conn) {
+func (l *chanListener) push(c net.Conn) bool {
 	select {
 	case l.ch <- c:
+		return true
 	case <-l.done:
 		_ = c.Close()
+	default:
+		_ = c.Close()
 	}
+	return false
 }
 
 type peekedConn struct {
@@ -60,15 +65,24 @@ type Demuxer struct {
 	HTTPLn      *chanListener
 	AllowICETCP bool
 	Log         logging.LeveledLogger
+	Meter       *observe.Meter
 }
 
 func (d *Demuxer) Serve(real net.Listener) error {
+	pending := make(chan struct{}, 128)
 	for {
 		raw, err := real.Accept()
 		if err != nil {
 			return err
 		}
-		go d.route(raw)
+		select {
+		case pending <- struct{}{}:
+			d.Meter.Gauge("handshakes_pending", 1)
+			go func() { defer func() { <-pending; d.Meter.Gauge("handshakes_pending", -1) }(); d.route(raw) }()
+		default:
+			d.Meter.Add("handshake_capacity_rejected", 1)
+			_ = raw.Close()
+		}
 	}
 }
 
@@ -77,6 +91,7 @@ func (d *Demuxer) route(raw net.Conn) {
 	br := bufio.NewReaderSize(raw, 2048)
 	hdr, err := br.Peek(peekBytes)
 	if err != nil {
+		d.Meter.Add("tcp_peek_failed", 1)
 		_ = raw.Close()
 		return
 	}
@@ -88,32 +103,48 @@ func (d *Demuxer) route(raw net.Conn) {
 		d.handleTLS(conn)
 	case d.AllowICETCP && hdr[2]&0xC0 == 0 && binary.BigEndian.Uint32(hdr[6:10]) == stunMagicCookie:
 
-		d.ICELn.push(conn)
+		d.deliver(d.ICELn, conn, "ice_tcp_routed")
 	default:
 
+		d.Meter.Add("tcp_protocol_rejected", 1)
 		_ = raw.Close()
 	}
 }
 
 func (d *Demuxer) handleTLS(raw net.Conn) {
-	_ = raw.SetReadDeadline(time.Now().Add(peekTimeout))
+	_ = raw.SetDeadline(time.Now().Add(peekTimeout))
 	tc := tls.Server(raw, d.TLSConfig)
 	if err := tc.Handshake(); err != nil {
+		d.Meter.Add("tls_failed", 1)
 		_ = raw.Close()
 		return
 	}
 	proto := tc.ConnectionState().NegotiatedProtocol
+	d.Meter.Add("tls_ok", 1)
 	if proto == "acme-tls/1" {
 		_ = tc.Close()
 		return
 	}
 	inner := bufio.NewReaderSize(tc, 2048)
 	first, err := inner.Peek(8)
-	_ = raw.SetReadDeadline(time.Time{})
+	_ = raw.SetDeadline(time.Time{})
 	wrapped := &peekedConn{Conn: tc, r: inner}
 	if err == nil && first[0]&0xC0 == 0 && binary.BigEndian.Uint32(first[4:8]) == stunMagicCookie {
-		d.TURNLn.push(wrapped)
+		d.deliver(d.TURNLn, wrapped, "turn_tls_routed")
 		return
 	}
-	d.HTTPLn.push(wrapped)
+	if err != nil {
+		d.Meter.Add("tls_peek_failed", 1)
+		_ = raw.Close()
+		return
+	}
+	d.deliver(d.HTTPLn, wrapped, "https_routed")
+}
+
+func (d *Demuxer) deliver(listener *chanListener, conn net.Conn, kind string) {
+	if listener.push(conn) {
+		d.Meter.Add(kind, 1)
+	} else {
+		d.Meter.Add("protocol_queue_rejected", 1)
+	}
 }

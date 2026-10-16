@@ -20,6 +20,7 @@ import (
 
 	"github.com/aes-gcm/audio.lgbt/internal/accounts"
 	"github.com/aes-gcm/audio.lgbt/internal/config"
+	"github.com/aes-gcm/audio.lgbt/internal/observe"
 	"github.com/aes-gcm/audio.lgbt/internal/sfu"
 	"github.com/aes-gcm/audio.lgbt/web"
 )
@@ -35,6 +36,8 @@ type Server struct {
 	log      logging.LoggerFactory
 	udpMux   ice.UDPMux
 	hub      *sfu.Hub
+	meter    *observe.Meter
+	guard    *guard
 }
 
 func New(cfg *config.Config) (*Server, error) {
@@ -53,7 +56,8 @@ func New(cfg *config.Config) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("listen UDP :%d: %w", cfg.UDPPort, err)
 	}
-	return &Server{cfg: cfg, log: lf, udpMux: udpMux, accounts: users}, nil
+	meter := observe.New()
+	return &Server{cfg: cfg, log: lf, udpMux: udpMux, accounts: users, meter: meter, guard: newGuard(meter)}, nil
 }
 
 func (s *Server) buildHub(net sfu.ServerNet, iceServers func(string) []sfu.ICEServer) error {
@@ -70,6 +74,7 @@ func (s *Server) buildHub(net sfu.ServerNet, iceServers func(string) []sfu.ICESe
 	}
 	s.hub = sfu.NewHub(sfu.HubConfig{
 		RequireAuth: s.cfg.RequireAuth,
+		Meter:       s.meter,
 		CanCreate:   s.accounts.CanCreate,
 		Engine:      engine,
 		Log:         s.log,
@@ -98,7 +103,7 @@ func (s *Server) Handler() http.Handler {
 		http.Redirect(w, r, "/download", http.StatusPermanentRedirect)
 	})
 	mux.Handle("/", noCacheHTML(http.FileServerFS(web.FS)))
-	return mux
+	return s.meter.HTTP(s.guard.HTTP(mux))
 }
 
 var installerVersion = regexp.MustCompile(`^audio\.lgbt-(\d+\.\d+\.\d+(?:-preview\.\d+)?)-x64\.exe$`)
@@ -137,6 +142,7 @@ func serveDownload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Run(ctx context.Context) error {
+	go s.meter.Run(ctx, os.Stdout, 15*time.Second)
 	if s.cfg.Dev {
 		return s.runDev(ctx)
 	}
@@ -151,10 +157,10 @@ func (s *Server) runDev(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
+	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 	s.log.NewLogger("server").Infof("audio.lgbt dev on http://%s (UDP media :%d)", ln.Addr(), s.cfg.UDPPort)
 	go func() { <-ctx.Done(); shutdown(srv) }()
-	if err := srv.Serve(ln); err != nil && err != http.ErrServerClosed {
+	if err := srv.Serve(&guardedListener{Listener: ln, guard: s.guard}); err != nil && err != http.ErrServerClosed {
 		return err
 	}
 	return nil

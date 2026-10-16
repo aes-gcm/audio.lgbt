@@ -77,11 +77,12 @@ type Participant struct {
 
 	closeWS func()
 
-	mbMu sync.Mutex
-	mbox []func()
-	sig  chan struct{}
-	done chan struct{}
-	once sync.Once
+	mbMu    sync.Mutex
+	mbox    []func()
+	closing bool
+	sig     chan struct{}
+	done    chan struct{}
+	once    sync.Once
 
 	labels         map[string]string
 	published      map[string]*PubTrack
@@ -111,22 +112,28 @@ func newParticipant(h *Hub, r *Room, id, name string) *Participant {
 	}
 }
 
-const mailboxWarn = 4096
+const mailboxLimit = 512
 
 func (p *Participant) post(f func()) {
 	p.mbMu.Lock()
+	if p.closing {
+		p.mbMu.Unlock()
+		return
+	}
 	select {
 	case <-p.done:
 		p.mbMu.Unlock()
 		return
 	default:
 	}
-	p.mbox = append(p.mbox, f)
-	n := len(p.mbox)
-	p.mbMu.Unlock()
-	if n == mailboxWarn {
-		p.log.Warnf("participant %s mailbox backlog %d", p.id, n)
+	if len(p.mbox) >= mailboxLimit {
+		p.mbMu.Unlock()
+		p.hub.meter.Add("participant_queue_rejected", 1)
+		p.Close()
+		return
 	}
+	p.mbox = append(p.mbox, f)
+	p.mbMu.Unlock()
 	select {
 	case p.sig <- struct{}{}:
 	default:
@@ -228,16 +235,25 @@ func (p *Participant) start() error {
 
 func (p *Participant) Close() {
 	p.once.Do(func() {
+		p.mbMu.Lock()
+		p.closing = true
+		p.mbMu.Unlock()
 		newHost := p.room.remove(p.id)
 		p.room.broadcast(p.id, Msg{Type: "peer-left", PeerID: p.id})
 		if newHost != "" {
 			p.room.broadcast("", Msg{Type: "host", PeerID: newHost})
 		}
 
-		p.post(func() {
+		p.mbMu.Lock()
+		p.mbox = []func(){func() {
 			p.teardown()
 			close(p.done)
-		})
+		}}
+		p.mbMu.Unlock()
+		select {
+		case p.sig <- struct{}{}:
+		default:
+		}
 	})
 }
 

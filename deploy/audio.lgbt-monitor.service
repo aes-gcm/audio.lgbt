@@ -1,0 +1,19 @@
+[Unit]
+Description=audio.lgbt host and availability metrics
+After=network-online.target audio.lgbt.service
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/lib/audio.lgbt/server-monitor.py --domain audio.lgbt
+Restart=on-failure
+RestartSec=5
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+MemoryMax=64M
+CPUQuota=10%
+LogNamespace=audio-lgbt
+
+[Install]
+WantedBy=multi-user.target

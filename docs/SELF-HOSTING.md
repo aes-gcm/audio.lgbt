@@ -90,6 +90,8 @@ docker compose logs --tail=100
 
 ## Разработка без Docker
 
+Лимиты защиты, журнал нагрузки и дополнительный монитор Linux описаны в [OPERATIONS.md](OPERATIONS.md).
+
 ```sh
 go build -o audio-server ./cmd/audio-server
 ./audio-server -dev -http 127.0.0.1:8080 -udp 3478

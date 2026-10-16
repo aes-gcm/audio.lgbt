@@ -103,10 +103,10 @@ func (s *Server) runProd(ctx context.Context) error {
 		log.Warnf("TURN-over-TLS fallback disabled: set -public-ip to enable it")
 	}
 
-	httpSrv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
+	httpSrv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 20 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 	go func() { _ = httpSrv.Serve(httpLn) }()
 
-	demux := &Demuxer{TLSConfig: tlsConf, ICELn: iceLn, TURNLn: turnLn, HTTPLn: httpLn, AllowICETCP: s.cfg.ICETCP, Log: s.log.NewLogger("demux")}
+	demux := &Demuxer{TLSConfig: tlsConf, ICELn: iceLn, TURNLn: turnLn, HTTPLn: httpLn, AllowICETCP: s.cfg.ICETCP, Log: s.log.NewLogger("demux"), Meter: s.meter}
 
 	log.Infof("audio.lgbt on https://%s (UDP media :%d, TURN-TLS=%v)", addr, s.cfg.UDPPort, turnEnabled)
 
@@ -119,7 +119,7 @@ func (s *Server) runProd(ctx context.Context) error {
 		shutdown(httpSrv)
 	}()
 
-	if err := demux.Serve(real); err != nil {
+	if err := demux.Serve(&guardedListener{Listener: real, guard: s.guard}); err != nil {
 		select {
 		case <-ctx.Done():
 			return nil

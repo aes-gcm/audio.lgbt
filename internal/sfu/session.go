@@ -4,18 +4,21 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base32"
+	"encoding/json"
+	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
+	"golang.org/x/time/rate"
 )
 
 const (
 	sendBuffer   = 128
 	writeTimeout = 10 * time.Second
-	readLimit    = 1 << 20
+	readLimit    = 256 << 10
 )
 
 func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
@@ -25,21 +28,24 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	c.SetReadLimit(readLimit)
+	c.SetReadLimit(2048)
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
 	var join Msg
-	rctx, rcancel := context.WithTimeout(ctx, 20*time.Second)
+	rctx, rcancel := context.WithTimeout(ctx, 10*time.Second)
 	err = wsjson.Read(rctx, c, &join)
 	rcancel()
 	if err != nil || join.Type != "join" {
+		h.meter.Add("ws_invalid_join", 1)
 		_ = c.Close(websocket.StatusPolicyViolation, "expected join")
 		return
 	}
+	c.SetReadLimit(readLimit)
 	authorized := h.canCreate != nil && h.canCreate(r)
 	room, err := h.joinAuthorized(strings.TrimSpace(join.Room), join.Token, authorized)
 	if err != nil {
+		h.meter.Add("room_join_rejected", 1)
 		_ = writeMsg(ctx, c, Msg{Type: "error", Error: err.Error()})
 		_ = c.Close(websocket.StatusPolicyViolation, err.Error())
 		return
@@ -89,16 +95,42 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	go p.run()
+	messages := rate.NewLimiter(30, 120)
+	bytes := rate.NewLimiter(256<<10, 512<<10)
+	negotiations := rate.NewLimiter(2, 8)
+	h.meter.Add("room_joined", 1)
 
 	for {
+		kind, reader, err := c.Reader(ctx)
+		if err != nil {
+			break
+		}
+		if !messages.Allow() || kind != websocket.MessageText {
+			h.meter.Add("ws_message_rejected", 1)
+			break
+		}
+		raw, err := io.ReadAll(reader)
+		if err != nil {
+			break
+		}
+		if !bytes.AllowN(time.Now(), len(raw)) {
+			h.meter.Add("ws_bytes_rejected", 1)
+			break
+		}
 		var m Msg
-		if err := wsjson.Read(ctx, c, &m); err != nil {
+		if json.Unmarshal(raw, &m) != nil {
+			h.meter.Add("ws_invalid_message", 1)
+			break
+		}
+		if (m.Type == "publish-offer" || m.Type == "subscribe-answer" || m.Type == "restart-sub-ice") && !negotiations.Allow() {
+			h.meter.Add("ws_negotiation_rejected", 1)
 			break
 		}
 		mm := m
 		p.post(func() { p.handle(mm) })
 	}
 	p.Close()
+	h.meter.Add("room_left", 1)
 	_ = c.Close(websocket.StatusNormalClosure, "")
 }
 
