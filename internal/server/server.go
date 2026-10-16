@@ -8,6 +8,11 @@ import (
 	"mime"
 	"net"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pion/ice/v4"
@@ -83,16 +88,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/logout", s.accounts.Logout)
 	mux.HandleFunc("/ws", s.hub.ServeWS)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte("ok")) })
-	mux.HandleFunc("/downloads/audio.lgbt-Setup.exe", func(w http.ResponseWriter, r *http.Request) {
-		file, err := web.FS.Open("downloads/audio.lgbt-Setup.exe")
-		if err != nil {
-			http.Redirect(w, r, "https://audio.lgbt/downloads/audio.lgbt-Setup.exe", http.StatusTemporaryRedirect)
-			return
-		}
-		file.Close()
-		w.Header().Set("Cache-Control", "no-cache")
-		http.ServeFileFS(w, r, web.FS, "downloads/audio.lgbt-Setup.exe")
-	})
+	mux.Handle("/downloads/", downloadHandler(s.cfg.DownloadsDir))
 	mux.HandleFunc("/download", serveDownload)
 	mux.HandleFunc("/download/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/download/" {
@@ -103,6 +99,36 @@ func (s *Server) Handler() http.Handler {
 	})
 	mux.Handle("/", noCacheHTML(http.FileServerFS(web.FS)))
 	return mux
+}
+
+var installerVersion = regexp.MustCompile(`^audio\.lgbt-(\d+\.\d+\.\d+(?:-preview\.\d+)?)-x64\.exe$`)
+
+func downloadHandler(directory string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		name := path.Base(r.URL.Path)
+		match := installerVersion.FindStringSubmatch(name)
+		if r.URL.Path != "/downloads/"+name || (name != "audio.lgbt-Setup.exe" && match == nil) {
+			if strings.HasSuffix(r.URL.Path, ".exe") {
+				http.NotFound(w, r)
+				return
+			}
+			noCacheHTML(http.FileServerFS(web.FS)).ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("Cache-Control", "no-cache")
+		if directory != "" {
+			file := filepath.Join(directory, name)
+			if info, err := os.Stat(file); err == nil && info.Mode().IsRegular() {
+				http.ServeFile(w, r, file)
+				return
+			}
+		}
+		version := "0.3.0-preview.7"
+		if match != nil {
+			version = match[1]
+		}
+		http.Redirect(w, r, "https://github.com/aes-gcm/audio.lgbt-windows/releases/download/v"+version+"/audio.lgbt-"+version+"-x64.exe", http.StatusTemporaryRedirect)
+	})
 }
 
 func serveDownload(w http.ResponseWriter, r *http.Request) {

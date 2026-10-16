@@ -12,6 +12,7 @@ import (
 type Config struct {
 	RequireAuth  bool
 	AccountsFile string
+	DownloadsDir string
 
 	Dev bool
 
@@ -51,6 +52,7 @@ func Parse(args []string) (*Config, error) {
 	}
 	fs.BoolVar(&c.RequireAuth, "require-auth", requireAuth, "require a local account to create rooms; invited guests need no account")
 	fs.StringVar(&c.AccountsFile, "accounts", env("AUDIO_ACCOUNTS_FILE", "data/accounts.json"), "local account file")
+	fs.StringVar(&c.DownloadsDir, "downloads-dir", env("AUDIO_DOWNLOADS_DIR", ""), "optional installer mirror for older clients")
 
 	fs.BoolVar(&c.Dev, "dev", false, "development mode: plain HTTP on -http, no TLS/TURN (localhost only)")
 	fs.StringVar(&c.Domain, "domain", env("AUDIO_DOMAIN", ""), "public hostname for Let's Encrypt certificates")
