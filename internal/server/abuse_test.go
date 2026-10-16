@@ -65,6 +65,10 @@ func TestWebsocketFloodDoesNotCloseOtherParticipant(t *testing.T) {
 		t.Fatal(err)
 	}
 	c, g := meter.Snapshot()
+	for g["ws_handlers"] != 1 && ctx.Err() == nil {
+		time.Sleep(10 * time.Millisecond)
+		_, g = meter.Snapshot()
+	}
 	if c["ws_message_rejected"] != 1 || c["ws_upgraded"] != 2 || g["ws_handlers"] != 1 {
 		t.Fatalf("metrics: %v %v", c, g)
 	}
