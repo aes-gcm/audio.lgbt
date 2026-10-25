@@ -231,7 +231,7 @@ function deviceConstraints(kind) {
   const id = $(kind === 'video' ? 'camSel' : 'micSel').value;
   return kind === 'video'
     ? { deviceId: id ? { exact: id } : undefined, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }
-    : { deviceId: id ? { exact: id } : undefined, echoCancellation: true, noiseSuppression: navigator.mediaDevices.getSupportedConstraints().noiseSuppression ? { exact: noiseFilter } : undefined, autoGainControl: false, channelCount: 1 };
+    : { deviceId: id ? { exact: id } : undefined, echoCancellation: true, noiseSuppression: navigator.mediaDevices.getSupportedConstraints().noiseSuppression ? { exact: noiseFilter } : undefined, autoGainControl: true, channelCount: 1 };
 }
 
 async function updatePreviewDevice(kind, changeDevice = false) {
