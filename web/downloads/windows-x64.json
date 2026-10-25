@@ -1,7 +1,7 @@
 {
-  "version": "0.3.0-preview.9",
+  "version": "0.3.0-preview.11",
   "architecture": "x64",
-  "url": "https://audio.lgbt/downloads/audio.lgbt-0.3.0-preview.9-x64.exe",
-  "size": 74338809,
-  "sha256": "5d6f39552ed4b1825c4ecb779a2d4f54ff03c172578d77880b90cfb434c4cffa"
+  "url": "https://audio.lgbt/downloads/audio.lgbt-0.3.0-preview.11-x64.exe",
+  "size": 74360855,
+  "sha256": "5bcfb185d89d7fbfa5482d46f4d3cb7bb3c026e733ce59c6991cdadb75796f5b"
 }
